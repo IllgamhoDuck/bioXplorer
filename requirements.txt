@@ -2,5 +2,6 @@ numpy
 scipy
 pandas
 scikit-learn
-anndata
+cellxgene_census
 matplotlib
+awscli
