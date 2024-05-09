@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 TEMP_DIR = os.path.join(os.path.expanduser('~'), '.bioxplorer')
 
 def install_scgpt(
-    package_dir: str = os.path.join(TEMP_DIR, 'scGPT'),
+    package_dir: str = os.path.join(TEMP_DIR, 'scgpt'),
 ):
     """post-install for scgpt"""
 
@@ -102,3 +102,23 @@ def install_geneformer(
     ])
 
     print("Geneformer Environment is set up successfully")
+
+
+def install_uce(
+    package_dir: str = os.path.join(TEMP_DIR, 'uce'),
+):
+    """Post-installation for UCE"""
+
+    # Setup directory for UCE
+    os.makedirs(package_dir, exist_ok=True)
+    package_path = os.path.join(package_dir, 'UCE')
+    if not os.path.exists(package_path):
+        os.makedirs(package_path, exist_ok=True)
+        # Assuming UCE is to be cloned from a repository
+        subprocess.check_call([
+            'git', 'clone', 'https://github.com/snap-stanford/UCE.git',
+            package_path,
+        ])
+
+    print("UCE setup is completed successfully.")
+
