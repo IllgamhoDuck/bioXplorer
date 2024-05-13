@@ -9,8 +9,8 @@ with open(requirements_path) as f:
 setup(
     name='BioXplorer',
     version='0.1.0',
-    author='HyunByung Park, 42Robotics',
-    author_email='hyunbyung87@gmail.com, gdanfx@gmail.com',
+    author='HyunByung Park',
+    author_email='hyunbyung87@gmail.com',
     packages=find_packages(),
     install_requires=requirements,
     description='A Python package for exploratory data analysis of cell data using cellxgene.',
