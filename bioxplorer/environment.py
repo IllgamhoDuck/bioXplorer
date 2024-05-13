@@ -26,8 +26,8 @@ def install_scgpt(
             'scgpt', 'wandb', 'louvain', 'torchtext', 'gdown'
         ])
 
-    data_dir: str = os.path.join(package_dir, 'data'),
-    model_dir: str = os.path.join(package_dir, 'model'),
+    data_dir: str = os.path.join(package_dir, 'data')
+    model_dir: str = os.path.join(package_dir, 'model')
 
     os.makedirs(data_dir, exist_ok=True)
     data_file = os.path.join(data_dir, "human_pancreas_norm_complexBatch.h5ad")
