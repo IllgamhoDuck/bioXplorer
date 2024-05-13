@@ -150,7 +150,8 @@ def extract_geneformer(adata, cache=None, ensembl_id_col='feature_id', *args, **
     os.makedirs(embs_dir)
 
     # dense matrix in h5ad format will cause error for fancy indexing
-    adata.X = csr_matrix(adata.X)
+    if isinstance(adata.X, list):
+        adata.X = csr_matrix(adata.X)
 
     adata.write(os.path.join(h5ad_dir, "geneformer.h5ad"))
     cache['tokenizer'].tokenize_data(

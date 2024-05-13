@@ -1,6 +1,7 @@
 
 import anndata
 import numpy as np
+from scipy.sparse import csr_matrix
 
 
 def convert_to_pseudobulk(adata, patient_col='donor_id'):
@@ -26,5 +27,6 @@ def convert_to_pseudobulk(adata, patient_col='donor_id'):
 
     # to avoid anndata save error
     pdata.X = pdata.X.tolist()
+    pdata.X = csr_matrix(pdata.X)
 
     return pdata
