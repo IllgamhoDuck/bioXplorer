@@ -67,7 +67,7 @@ class Embeddings:
             raise ValueError(f"Model {model} not supported.")
 
 
-    def extract(self, model, adata, *args, **kwargs):
+    def extract(self, model, adata, verbose=False, *args, **kwargs):
         if not self.is_initialized[model]:
             self.install(model)
             self.cache[model] = self.setup(model)
@@ -77,6 +77,7 @@ class Embeddings:
             return self.extract_fns[model](
                 adata,
                 cache=self.cache[model],
+                verbose=verbose,
                 *args,
                 **kwargs,
             )
@@ -120,13 +121,20 @@ def setup_geneformer():
     }
 
 
-def extract_uce(adata, cache=None, *args, **kwargs):
+def extract_uce(adata, cache=None, verbose=False, *args, **kwargs):
     return adata
 
-def extract_scgpt(adata, cache=None, *args, **kwargs):
+def extract_scgpt(adata, cache=None, verbose=False, *args, **kwargs):
     return adata
 
-def extract_geneformer(adata, cache=None, ensembl_id_col='feature_id', *args, **kwargs):
+def extract_geneformer(
+    adata,
+    cache=None,
+    ensembl_id_col='feature_id',
+    verbose=False,
+    *args,
+    **kwargs,
+):
     # preprocess for Geneformer
     adata.var['ensembl_id'] = adata.var[ensembl_id_col]
     adata.obs['n_counts'] = adata.X.sum(axis=1)
@@ -164,7 +172,7 @@ def extract_geneformer(adata, cache=None, ensembl_id_col='feature_id', *args, **
     # extract embeddings
     embs = cache['emb_extractor'].extract_embs(
         model_directory=cache['model_dir'],
-        input_data_file=token_dir + "geneformer.dataset",
+        input_data_file=os.path.join(token_dir, "geneformer.dataset"),
         output_directory=embs_dir,
         output_prefix="emb",
     )
