@@ -4,7 +4,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 
-def convert_to_pseudobulk(adata, patient_col='donor_id'):
+def convert_to_pseudo_bulk(adata, patient_col='donor_id'):
     """
     This function is biased towards the scRNA-seq data structure of the adata object.
 
