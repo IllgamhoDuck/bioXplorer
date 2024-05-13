@@ -89,7 +89,10 @@ def setup_uce():
     return None
 
 def setup_scgpt():
-    return None
+    model_dir = os.path.join(TEMP_DIR, "scgpt", "model")
+    return {
+        'model_dir': model_dir,
+    }
 
 def setup_geneformer():
     from geneformer import (
@@ -122,19 +125,39 @@ def setup_geneformer():
 
 
 def extract_uce(adata, cache=None, verbose=False, *args, **kwargs):
+    adata = adata.copy()
     return adata
 
-def extract_scgpt(adata, cache=None, verbose=False, *args, **kwargs):
+
+# check if scGPT is already installed
+IS_SCGPT_IMPORTED = False
+
+def extract_scgpt(adata, gene_col="feature_name", cache=None, verbose=False, *args, **kwargs):
+    global IS_SCGPT_IMPORTED
+    if not IS_SCGPT_IMPORTED:
+        import scgpt
+        IS_SCGPT_IMPORTED = True
+    
+    adata = adata.copy()
+    adata = scgpt.tasks.embed_data(
+        adata,
+        cache['model_dir'],
+        gene_col=gene_col,
+        batch_size=64,
+    )
+
     return adata
 
 def extract_geneformer(
     adata,
-    cache=None,
     ensembl_id_col='feature_id',
+    cache=None,
     verbose=False,
     *args,
     **kwargs,
 ):
+    adata = adata.copy()
+
     # preprocess for Geneformer
     adata.var['ensembl_id'] = adata.var[ensembl_id_col]
     adata.obs['n_counts'] = adata.X.sum(axis=1)
