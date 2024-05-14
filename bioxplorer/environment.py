@@ -5,6 +5,7 @@ import sys
 import warnings
 from tqdm.notebook import tqdm
 from bioxplorer.utils import update_code
+from bioxplorer.utils import figshare_download
 
 warnings.filterwarnings("ignore")
 
@@ -119,6 +120,17 @@ def install_uce(
             'git', 'clone', 'https://github.com/snap-stanford/UCE.git',
             package_path,
         ])
+
+    model4l_url = "https://figshare.com/ndownloader/files/42706576"
+    model33l_url = "https://figshare.com/ndownloader/files/43423236"
+
+    model_dir = os.path.join(package_dir, 'model')
+    model4l_path = os.path.join(model_dir, "model4l")
+    model33l_path = os.path.join(model_dir, "model33l")
+    if not os.path.exists(model4l_path):
+        figshare_download(model4l_url, model4l_path)
+    if not os.path.exists(model33l_path):
+        figshare_download(model33l_url, model33l_path)
 
     print("UCE setup is completed successfully.")
 

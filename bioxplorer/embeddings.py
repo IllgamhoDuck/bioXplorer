@@ -4,6 +4,7 @@ import os
 import json
 import subprocess
 import warnings
+import anndata
 from scipy.sparse import csr_matrix
 
 from bioxplorer.environment import TEMP_DIR
@@ -86,7 +87,21 @@ class Embeddings:
 
 
 def setup_uce():
-    return None
+    # args_dir = os.path.join(TEMP_DIR, "uce", "model_files")
+    # if not os.path.exists(args_dir):
+    #     subprocess.run(["mkdir", "-p", args_dir])
+
+    # species_chrom_path = os.path.join(args_dir, "species_chrom.csv")
+    # token_file_path = os.path.join(args_dir, "all_tokens.torch")
+    # protein_embeddings_dir = os.path.join(args_dir, "protein_embeddings")
+    # offset_pkl_path = os.path.join(args_dir, "species_offsets.pkl")
+    # return {
+    #     'spec_chrom_csv_path': species_chrom_path,
+    #     'token_file': token_file_path,
+    #     'protein_embeddings_dir': protein_embeddings_dir,
+    #     'offset_pkl_path': offset_pkl_path,
+    # }
+    return {}
 
 def setup_scgpt():
     model_dir = os.path.join(TEMP_DIR, "scgpt", "model")
@@ -124,15 +139,81 @@ def setup_geneformer():
     }
 
 
-def extract_uce(adata, cache=None, verbose=False, *args, **kwargs):
+def extract_uce(
+    adata,
+    ensembl_name_col='feature_name',
+    batch_size=24,
+    layers=33,
+    cache=None,
+    verbose=False,
+    *args,
+    **kwargs
+):
     adata = adata.copy()
+
+    current_dir = os.getcwd()
+
+    # change folder to UCE
+    package_path = os.path.join(TEMP_DIR, 'uce', 'UCE')
+    os.chdir(package_path)
+
+    # preprocess for UCE
+    adata.var.reset_index(inplace=True)
+    adata.var.set_index(ensembl_name_col, inplace=True)
+    adata.var.rename(columns={'index': 'ensembl_id'}, inplace=True)
+
+    # save h5ad
+    data_dir = os.path.join(TEMP_DIR, "uce", "data")
+    if os.path.exists(data_dir):
+        subprocess.run(["rm", "-r", data_dir])
+    os.makedirs(data_dir)
+
+    data_path = os.path.join(data_dir, f'uce.h5ad')
+    adata.write_h5ad(data_path)
+
+    # setup UCE args
+    assert layers in [4, 33], "Only support 4 or 33 layers"
+    if layers == 4:
+        model_dir = os.path.join(TEMP_DIR, "uce", "model", "model4l")
+    elif layers == 33:
+        model_dir = os.path.join(TEMP_DIR, "uce", "model", "model33l")
+
+    # process with UCE
+    package_path = os.path.join(TEMP_DIR, 'uce', 'UCE')
+    subprocess.run([
+        'python', os.path.join(package_path, 'eval_single_anndata.py'),
+        '--adata_path', data_path,
+        '--dir', data_dir + '/', # becaues uce adds two path with just `+`
+        '--model_loc', model_dir,
+        '--species', 'human',
+        '--batch_size', str(batch_size),
+        '--nlayers', str(layers),
+        # '--spec_chrom_csv_path', cache['spec_chrom_csv_path'],
+        # '--token_file', cache['token_file'],
+        # '--protein_embeddings_dir', cache['protein_embeddings_dir'],
+        # '--offset_pkl_path', cache['offset_pkl_path'],
+    ])
+
+    save_path = os.path.join(data_dir, 'uce_uce_adata.h5ad')
+    adata = anndata.read_h5ad(save_path)
+
+    os.chdir(current_dir)
+
     return adata
 
 
 # check if scGPT is already installed
 IS_SCGPT_IMPORTED = False
 
-def extract_scgpt(adata, gene_col="feature_name", cache=None, verbose=False, *args, **kwargs):
+def extract_scgpt(
+    adata,
+    ensembl_name_col="feature_name",
+    batch_size=64,
+    cache=None,
+    verbose=False,
+    *args,
+    **kwargs
+):
     global IS_SCGPT_IMPORTED
     if not IS_SCGPT_IMPORTED:
         import scgpt
@@ -142,8 +223,8 @@ def extract_scgpt(adata, gene_col="feature_name", cache=None, verbose=False, *ar
     adata = scgpt.tasks.embed_data(
         adata,
         cache['model_dir'],
-        gene_col=gene_col,
-        batch_size=64,
+        gene_col=ensembl_name_col,
+        batch_size=batch_size,
     )
 
     return adata
@@ -151,12 +232,17 @@ def extract_scgpt(adata, gene_col="feature_name", cache=None, verbose=False, *ar
 def extract_geneformer(
     adata,
     ensembl_id_col='feature_id',
+    batch_size=None,
     cache=None,
     verbose=False,
     *args,
     **kwargs,
 ):
     adata = adata.copy()
+
+    # if batch_size is provided, use it
+    if batch_size is not None:
+        cache['emb_extractor'].forward_batch_size = batch_size
 
     # preprocess for Geneformer
     adata.var['ensembl_id'] = adata.var[ensembl_id_col]
