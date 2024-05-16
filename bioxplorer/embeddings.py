@@ -179,7 +179,6 @@ def extract_uce(
         model_dir = os.path.join(TEMP_DIR, "uce", "model", "model33l")
 
     # process with UCE
-    package_path = os.path.join(TEMP_DIR, 'uce', 'UCE')
     subprocess.run([
         'python', os.path.join(package_path, 'eval_single_anndata.py'),
         '--adata_path', data_path,
@@ -208,7 +207,7 @@ IS_SCGPT_IMPORTED = False
 def extract_scgpt(
     adata,
     ensembl_name_col="feature_name",
-    batch_size=64,
+    batch_size=32,
     cache=None,
     verbose=False,
     *args,
@@ -218,7 +217,7 @@ def extract_scgpt(
     if not IS_SCGPT_IMPORTED:
         import scgpt
         IS_SCGPT_IMPORTED = True
-    
+
     adata = adata.copy()
     adata = scgpt.tasks.embed_data(
         adata,

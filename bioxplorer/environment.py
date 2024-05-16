@@ -121,6 +121,12 @@ def install_uce(
             package_path,
         ])
 
+        # update the code for filter
+        file_path = os.path.join(package_dir, 'UCE', 'eval_single_anndata.py')
+        old_line = "parser.add_argument('--filter', type=bool, default=True,"
+        new_line = "parser.add_argument('--filter', action='store_true',"
+        update_code(file_path, old_line, new_line)
+
     model4l_url = "https://figshare.com/ndownloader/files/42706576"
     model33l_url = "https://figshare.com/ndownloader/files/43423236"
 
