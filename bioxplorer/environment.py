@@ -24,7 +24,7 @@ def install_scgpt(
     except ImportError:
         subprocess.check_call([
             sys.executable, '-m', 'pip', 'install', '-U',
-            'scgpt', 'wandb', 'louvain', 'torchtext', 'gdown'
+            'scgpt', 'wandb', 'louvain', 'torch', 'torchtext', 'gdown'
         ])
 
     data_dir: str = os.path.join(package_dir, 'data')
