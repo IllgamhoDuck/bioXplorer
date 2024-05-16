@@ -87,20 +87,6 @@ class Embeddings:
 
 
 def setup_uce():
-    # args_dir = os.path.join(TEMP_DIR, "uce", "model_files")
-    # if not os.path.exists(args_dir):
-    #     subprocess.run(["mkdir", "-p", args_dir])
-
-    # species_chrom_path = os.path.join(args_dir, "species_chrom.csv")
-    # token_file_path = os.path.join(args_dir, "all_tokens.torch")
-    # protein_embeddings_dir = os.path.join(args_dir, "protein_embeddings")
-    # offset_pkl_path = os.path.join(args_dir, "species_offsets.pkl")
-    # return {
-    #     'spec_chrom_csv_path': species_chrom_path,
-    #     'token_file': token_file_path,
-    #     'protein_embeddings_dir': protein_embeddings_dir,
-    #     'offset_pkl_path': offset_pkl_path,
-    # }
     return {}
 
 def setup_scgpt():
@@ -144,6 +130,7 @@ def extract_uce(
     ensembl_name_col='feature_name',
     batch_size=24,
     layers=33,
+    filter=False,
     cache=None,
     verbose=False,
     *args,
@@ -179,7 +166,7 @@ def extract_uce(
         model_dir = os.path.join(TEMP_DIR, "uce", "model", "model33l")
 
     # process with UCE
-    subprocess.run([
+    cmds = [
         'python', os.path.join(package_path, 'eval_single_anndata.py'),
         '--adata_path', data_path,
         '--dir', data_dir + '/', # becaues uce adds two path with just `+`
@@ -187,11 +174,10 @@ def extract_uce(
         '--species', 'human',
         '--batch_size', str(batch_size),
         '--nlayers', str(layers),
-        # '--spec_chrom_csv_path', cache['spec_chrom_csv_path'],
-        # '--token_file', cache['token_file'],
-        # '--protein_embeddings_dir', cache['protein_embeddings_dir'],
-        # '--offset_pkl_path', cache['offset_pkl_path'],
-    ])
+    ]
+    if filter:
+        cmds.append('--filter')
+    subprocess.run(cmds)
 
     save_path = os.path.join(data_dir, 'uce_uce_adata.h5ad')
     adata = anndata.read_h5ad(save_path)
