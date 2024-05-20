@@ -7,3 +7,7 @@ cellxgene_census
 matplotlib
 awscli
 accelerate
+torch==2.3.0
+torchtext==0.18.0
+nvidia-nccl-cu12==2.20.5
+triton==2.3.0
